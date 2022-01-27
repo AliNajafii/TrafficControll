@@ -87,13 +87,13 @@ class AbstractBaseBackEnd(AbstractBackend):
     
     def _set_api_module(self,module:Module):
         if not inspect.ismodule(self.connector):
-            raise NotModule(f'{cls.__class__.__name__} is not a module.')
+            raise NotModule(f'{module.__class__.__name__} is not a module.')
         self.module = module
     
     def _set_connector_class(self,cls:str):
         if not inspect.isclass(cls):
             raise NotClass
-        self.connector = eval(cls)
+        self.connector = cls
         
         
     def _find_possible_connectors(self):
