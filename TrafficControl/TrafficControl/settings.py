@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'geo',
-    'mainapp'
+    'mainapp',
+    'nosql_management'
     
 ]
 
