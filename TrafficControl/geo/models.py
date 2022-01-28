@@ -126,4 +126,8 @@ class TollStation(Position):
         #when querying to find a tollstation is located
         # in which road , we can inisialize this field
     
+    def get_position(self):
+        
+        return self.lat , self.lng
+    
     
