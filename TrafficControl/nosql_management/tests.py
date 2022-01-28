@@ -29,4 +29,16 @@ class TestAbstractbaseBackend(TestCase):
     def test_find_possible_connectors(self):
         connector = self.backend._find_possible_connectors()
         self.assertEqual(connector,redis.Redis)
+    
+    def test_API_functions(self):
+        """
+        tests if binded functions work 
+        properly or not
+        """
+        self.backend.start(host='127.0.0.1')
+        self.backend.ping()
+        self.backend.set('TEST','VALUE')
+        val = self.backend.get('TEST')
+        self.assertEqual(val,b'VALUE')
+
         
