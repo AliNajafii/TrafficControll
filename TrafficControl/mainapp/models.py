@@ -4,6 +4,7 @@ from geo.models import Position
 from enum import Enum
 from geo import utils as geoutils
 from geo.models import TollStation
+from .utils import LimitedQueryMixin
 
 class ColorTypes(Enum):
     RED = 'RD'
@@ -215,3 +216,5 @@ class CarTraffic(Position):
     )
 
     date = models.DateTimeField()
+
+    
