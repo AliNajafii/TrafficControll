@@ -15,3 +15,8 @@ class NotClass(Exception):
     if it is not a class AbstractbaseBackend
     raise this class
     """
+class BackEndNotStarted(Exception) :
+    """
+    when backend not started it has
+    not any connection attribute.
+    """
