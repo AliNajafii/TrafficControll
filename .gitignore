@@ -13,6 +13,6 @@ __pycache__/
 
 .vscode/
 .atom/
-*/migrations/
-.json
-.pdf
+migrations/
+*.json
+*.pdf
