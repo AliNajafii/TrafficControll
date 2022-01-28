@@ -2,6 +2,8 @@ from django.db import models
 from django.db.models import Q
 from geo.models import Position
 from enum import Enum
+from geo import utils as geoutils
+from geo.models import TollStation
 
 class ColorTypes(Enum):
     RED = 'RD'
@@ -53,7 +55,100 @@ class Owner(Person):
         we expected.
         """
     
+    def path_traveled(self):
+        """
+        return list of pathes travelled
+        by him/her cars.
+        """
+        points_list = []
+        for car in self.car_set.all():
+            points = car.path_traveled()
+            points_list.append(points)
+        return points_list
     
+    def path_traveld_by_car(self,car_id):
+        """
+        return the path which travelled by
+        her/him car.
+        """
+        try:
+            car = self.car_set.get(pk=car_id)
+        except models.ObjectDoesNotExist:
+            return 
+        return car.path_traveled()
+    
+    def toll_stations_passed_by_specific_car(self,car_id):
+        """
+        returns all toll stations that owner passed
+        by a specific car.
+        """
+        toll_stations = []
+        positions = self.path_traveld_by_car(car_id)
+        if positions:
+            travelled_path = geoutils.make_line(*positions)
+            for ts in TollStation.objects.all():
+                lat,lng = ts.get_position()
+                if geoutils.in_line(lat,lng,travelled_path):
+                    toll_stations.append(ts)
+        return toll_stations
+        
+
+
+    
+    def toll_station_passed(self,cartype = CarTypes.BIG):
+        """
+        returns total toll stations passed
+        by owner cars. default car type is 
+        just big cars.
+        """
+        toll_stations = []
+        for car in self.car_set.all():
+            toll_stations += self.toll_stations_passed_by_specific_car(car.id)
+        
+        return toll_stations
+
+
+    def expected_total_toll_price_for_small_cars(self):
+        """
+        returns amount of total toll
+        prices which system expects
+        from owner when driving small 
+        cars and should to pay.
+        """
+        total_price = 0
+        total_toll_stations = \
+            self.toll_station_passed(CarTypes.SMALL) #when driving with small car
+                                                    #and passing from toll stations
+        
+        for ts in total_toll_stations:
+            total_price += ts.toll_per_cross
+    
+    def expected_total_toll_price_for_big_cars(self):
+        """
+        returns total pay amount
+        when owner driving big car
+        and pass the toll station
+        it should pay per load balance.
+        """
+        total_price = 0
+        try:
+            big_car = self.car_set.filter(car_type = CarTypes.BIG)[0]
+            toll_stations_passed = self.toll_stations_passed_by_specific_car(big_car.id)
+            for ts in toll_stations_passed:
+                price = big_car.load_balance * ts.per_kilogram_cost
+                total_price += price
+        except IndexError:
+            pass
+
+        return total_price
+    
+    def expected_total_toll_price(self):
+        """
+        return total price that system
+        expects owner should paid.
+        """
+        return self.expected_total_toll_price_for_big_cars() \
+            + self.expected_total_toll_price_for_small_cars()
     
     
 class Car(models.Model):
