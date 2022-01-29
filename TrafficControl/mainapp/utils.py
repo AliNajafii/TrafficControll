@@ -11,7 +11,7 @@ class LimitedQueryMixin:
         it returns query.
         """
         count = query.count()
-        if count > 10
-        step = count * percent
-        for limit in range(offset,count,step):
-            yield query[offset:limit]
+        if count > 10:
+            step = count * percent
+            for limit in range(offset,count,step):
+                yield query[offset:limit]
