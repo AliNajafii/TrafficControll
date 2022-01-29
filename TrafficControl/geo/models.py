@@ -1,7 +1,8 @@
 from django.db import models
-from .utils import make_line,in_line
+from .utils import make_line,in_line,in_radius_range
 from django.db.models import QuerySet
 from mainapp.utils import LimitedQueryMixin 
+
 
 class Position(models.Model):
     """
@@ -113,5 +114,17 @@ class TollStation(Position):
     def get_position(self):
         
         return self.lat , self.lng
+    
+    def is_position_near(self,
+        lat:float,
+        lng:float,
+        in_radius:float):
+        """
+        returns True if a position
+        is in the radius range of this toll
+        station.
+        """
+        center = self.get_position()
+        return in_radius_range(*center,lat,lng,in_radius)
     
     
