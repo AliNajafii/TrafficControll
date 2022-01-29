@@ -3,7 +3,7 @@ from django.db.models import Q
 from geo.models import Position
 from enum import Enum
 from geo import utils as geoutils
-from geo.models import TollStation
+from geo.models import TollStation,Road
 from .utils import LimitedQueryMixin
 
 class ColorTypes(Enum):
@@ -197,6 +197,35 @@ class Car(models.Model):
         on_delete = models.CASCADE,
         related_query_name= 'cars'
     )
+
+    @classmethod
+    def cars_passed(
+        cls,
+        road_less_than_width:str,
+        start_date=None,
+        end_date = None,
+        car_type = CarTypes.BIG
+    ):
+        """
+        returns cars with the given type
+        which passed from roads with the width of
+        less than given amount.
+        """
+        cars_list = [] #finall target cars
+        target_roads = Road.objects.filter(width__lte = road_less_than_width)
+        target_cars = Car.objects.filter(car_type = car_type.value)
+        for limited_roads in Road.limit_query(target_roads):
+            for road in limited_roads:
+                route_positions = road.route_set.values_list('lat','lng')
+                for car in target_cars:
+                    car_positions = car.path_traveled(start_date,end_date)
+                    travelled_in_this_road = geoutils.is_sub_path_of(route_positions,car_positions) :
+                    if travelled_in_this_road: #if this car is travelled in the target road
+                        cars_list.append(car)
+        return cars_list
+
+
+
 
     def path_traveled(self,start_date=None,end_date=None):
         """
