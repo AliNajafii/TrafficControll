@@ -59,7 +59,7 @@ class Owner(Person):
     def path_traveled(self):
         """
         return list of pathes travelled
-        by him/her cars.
+        by owner cars.
         """
         points_list = []
         for car in self.car_set.all():
@@ -123,6 +123,8 @@ class Owner(Person):
         
         for ts in total_toll_stations:
             total_price += ts.toll_per_cross
+        
+        return total_price
     
     def expected_total_toll_price_for_big_cars(self):
         """
@@ -202,9 +204,34 @@ class Car(models.Model):
         between_date = Q(date__range=(start_date,end_date))
         points = self.cartraffic_set.all().filter(between_date).values_list('lat','lng')
         return list(points)
+    
+    def get_position(self,
+        in_date_time=None,
+        start_date=None,
+        end_date=None
+        ):
+        """
+        get the position of the car by
+        given datetime.
+        it returns car traffic instances
+        """
+        this_car_traffics = Q(car__id = self.id)
+        if in_date_time:
+            date = Q(date=in_date_time)
+            try:
+                car_traffic = CarTraffic.objects.filter(this_car_traffics and date)
+                return car_traffic
+            except IndexError:
+                return CarTraffic.objects.none()
+
+        elif start_date and end_date :
+            date = Q(date__range=(start_date,end_date))
+            this_car_traffics = CarTraffic.objects.filter(this_car_traffics and date).order_by('-date')
+            return this_car_traffics
+            
 
 
-class CarTraffic(Position):
+class CarTraffic(Position,LimitedQueryMixin):
     """represants traffic of spesific car
     Car Traffic is designed to show car
     movements and tracked coordinates.
@@ -216,5 +243,31 @@ class CarTraffic(Position):
     )
 
     date = models.DateTimeField()
+
+    @classmethod
+    def get_list_of_car_position_by_date(cls,
+        car_type = CarTypes.BIG,
+        in_date_time=None,
+        start_date=None,
+        end_date=None
+        ):
+        """
+        returns list of cars positions
+        at given date time .
+        """
+        car_query = Q(car__car_type = car_type.value)
+        if in_date_time :
+            date = Q(date=date)
+            cars_position = CarTraffic.objects.filter(date and car_query)
+            return cars_position
+        elif start_date and end_date :
+            date = Q(date__range=(start_date,end_date))
+            cars_position = CarTraffic.objects.filter(date and car_type)
+            return cars_position
+        else :
+            raise ValueError('in_date_time or start_date and end_date should be given')
+
+
+
 
     
