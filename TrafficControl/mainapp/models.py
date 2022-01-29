@@ -245,7 +245,7 @@ class CarTraffic(Position,LimitedQueryMixin):
     date = models.DateTimeField()
 
     @classmethod
-    def get_list_of_car_position_by_date(cls,
+    def get_list_of_car_positions_by_date(cls,
         car_type = CarTypes.BIG,
         in_date_time=None,
         start_date=None,
@@ -266,6 +266,43 @@ class CarTraffic(Position,LimitedQueryMixin):
             return cars_position
         else :
             raise ValueError('in_date_time or start_date and end_date should be given')
+    @classmethod
+    def cars_near_toll_station(
+        cls,
+        in_date_time,
+        start_date,
+        end_date,
+        radius_range:float,
+        toll_station_name:str,
+        car_type = CarTypes.SMALL
+    ):
+        """
+        This method returns cars positions
+        near toll station at given time
+        """
+        try :
+            toll_station:TollStation = TollStation.objects.get(name=toll_station_name)
+            cars_position = cls.get_list_of_car_positions_by_date(
+                car_type= car_type,
+                in_date_time= in_date_time,
+                start_date= start_date,
+                end_date= end_date
+            )
+            points = cars_position.values_list('lat','lng')
+            near_lat_points = []
+            near_long_points = []
+            for p in points:
+                lat,lng = float(p[0]),float(p[1])
+                if toll_station.is_position_near(lat,lng,radius_range):
+                    near_lat_points.append(lat)
+                    near_long_points.append(lng)
+            near_car_positions = CarTraffic.objects.filter(
+                lat__in = near_lat_points,
+                lng__in = near_long_points
+                )
+            return near_car_positions
+        except models.ObjectDoesNotExist:
+            return []
 
 
 
