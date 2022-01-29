@@ -219,7 +219,7 @@ class Car(models.Model):
         end_date=None
         ):
         """
-        get the position of the car by
+        get the positions of the car by
         given datetime.
         it returns car traffic instances
         """
