@@ -91,15 +91,14 @@ def make_line(*points:tuple):
     givs points as tuple and make linestrings
     and return shapely module LineString
     """
-    print(points)
+    
     points = position_converter(points)
-    print(points)
     
     line_points = []
     for lat,lng in points:
         line_points.append(Point(lat,lng))
     base_line=LineString(line_points)
-    print(base_line)
+    
     return base_line
 
 def in_line(lat,lng,line:LineString):
