@@ -84,6 +84,15 @@ def make_lines(path_list:list):
         print(line.length)
     return line
 
+def is_sub_path_of(super_path:list,sub_path:list):
+    """
+    returns true if super_path line covers
+    sub_path line.
+    """
+    line1 = make_line(*super_path)
+    line2 = make_line(*sub_path)
+    return line1.covers(line2)
+
 # if __name__ == '__main__':
 #     path_list = [
 #         [(0,0),(0,1)], 
