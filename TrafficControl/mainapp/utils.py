@@ -1,3 +1,4 @@
+from django.db.models import QuerySet
 class LimitedQueryMixin:
     """
     associate with model classes to 
