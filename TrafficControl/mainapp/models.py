@@ -67,7 +67,7 @@ class Owner(Person):
             points_list.append(points)
         return points_list
     
-    def path_traveld_by_car(self,car_id):
+    def path_traveld_by_car(self,car_id,start_date=None,end_date=None):
         """
         return the path which travelled by
         her/him car.
@@ -76,15 +76,15 @@ class Owner(Person):
             car = self.car_set.get(pk=car_id)
         except models.ObjectDoesNotExist:
             return 
-        return car.path_traveled()
+        return car.path_traveled(start_date,end_date)
     
-    def toll_stations_passed_by_specific_car(self,car_id):
+    def toll_stations_passed_by_specific_car(self,car_id,start_date=None,end_date=None):
         """
         returns all toll stations that owner passed
         by a specific car.
         """
         toll_stations = []
-        positions = self.path_traveld_by_car(car_id)
+        positions = self.path_traveld_by_car(car_id,start_date,end_date)
         if positions:
             travelled_path = geoutils.make_line(*positions)
             for ts in TollStation.objects.all():
@@ -96,7 +96,7 @@ class Owner(Person):
 
 
     
-    def toll_station_passed(self,cartype = CarTypes.BIG):
+    def toll_station_passed(self,cartype = CarTypes.BIG,start_date=None,end_date=None):
         """
         returns total toll stations passed
         by owner cars. default car type is 
@@ -104,12 +104,12 @@ class Owner(Person):
         """
         toll_stations = []
         for car in self.car_set.all():
-            toll_stations += self.toll_stations_passed_by_specific_car(car.id)
+            toll_stations += self.toll_stations_passed_by_specific_car(car.id,start_date,end_date)
         
         return toll_stations
 
 
-    def expected_total_toll_price_for_small_cars(self):
+    def expected_total_toll_price_for_small_cars(self,start_date=None,end_date=None):
         """
         returns amount of total toll
         prices which system expects
@@ -118,15 +118,19 @@ class Owner(Person):
         """
         total_price = 0
         total_toll_stations = \
-            self.toll_station_passed(CarTypes.SMALL) #when driving with small car
-                                                    #and passing from toll stations
+            self.toll_station_passed(
+                CarTypes.SMALL,
+                start_date,
+                end_date
+                ) #when driving with small car
+                #and passing from toll stations
         
         for ts in total_toll_stations:
             total_price += ts.toll_per_cross
         
         return total_price
     
-    def expected_total_toll_price_for_big_cars(self):
+    def expected_total_toll_price_for_big_cars(self,start_date=None,end_date=None):
         """
         returns total pay amount
         when owner driving big car
@@ -136,7 +140,11 @@ class Owner(Person):
         total_price = 0
         try:
             big_car = self.car_set.filter(car_type = CarTypes.BIG)[0]
-            toll_stations_passed = self.toll_stations_passed_by_specific_car(big_car.id)
+            toll_stations_passed = self.toll_stations_passed_by_specific_car(
+                big_car.id,
+                start_date,
+                end_date
+                )
             for ts in toll_stations_passed:
                 price = big_car.load_balance * ts.per_kilogram_cost
                 total_price += price
@@ -145,13 +153,13 @@ class Owner(Person):
 
         return total_price
     
-    def expected_total_toll_price(self):
+    def expected_total_toll_price(self,start_date=None,end_date=None):
         """
         return total price that system
         expects owner should paid.
         """
-        return self.expected_total_toll_price_for_big_cars() \
-            + self.expected_total_toll_price_for_small_cars()
+        return self.expected_total_toll_price_for_big_cars(start_date,end_date) \
+            + self.expected_total_toll_price_for_small_cars(start_date,end_date)
     
     
 class Car(models.Model):
@@ -203,7 +211,7 @@ class Car(models.Model):
             
         between_date = Q(date__range=(start_date,end_date))
         points = self.cartraffic_set.all().filter(between_date).values_list('lat','lng')
-        return list(points)
+        return points
     
     def get_position(self,
         in_date_time=None,
@@ -228,6 +236,39 @@ class Car(models.Model):
             date = Q(date__range=(start_date,end_date))
             this_car_traffics = CarTraffic.objects.filter(this_car_traffics and date).order_by('-date')
             return this_car_traffics
+
+    def get_total_toll_price_by_date(
+        self,
+        start_date,
+        end_date,
+        car_type=CarTypes.BIG
+        ):
+        """
+        returns total expected toll price of this car
+        between given date range.
+        """
+        total_toll_paid = 0
+        
+        try : 
+            owner:Owner = Owner.objects.get(id=self.owner)
+            toll_stations = owner.toll_stations_passed_by_specific_car(
+                self.id,
+                start_date = start_date,
+                end_date= end_date
+                )
+            car :Car = Car.objects.get(id=self.id)
+            if car.car_type == CarTypes.BIG.value:
+                for ts in toll_stations:
+                    total_toll_paid += ts.per_kilogram_cost * car.load_balance
+            else :
+                for ts in toll_stations :
+                    total_toll_paid += ts.toll_per_cross
+
+            return total_toll_paid
+
+        except models.ObjectDoesNotExist:
+            return 
+        
             
 
 
