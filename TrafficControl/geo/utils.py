@@ -9,7 +9,7 @@ def position_converter(*positions):
     """
     res = []
     for p in positions:
-        if hasattr(p,'__iter__'):
+        if isinstance(p,(list,tuple,set)):
             #inner tuples in the list
             for coord in p:
                 res.append(
@@ -91,12 +91,15 @@ def make_line(*points:tuple):
     givs points as tuple and make linestrings
     and return shapely module LineString
     """
+    print(points)
     points = position_converter(points)
-    base_line = LineString()
-    points = []
+    print(points)
+    
+    line_points = []
     for lat,lng in points:
-        points.append(Point(lat,lng))
-    base_line.union(LineString(points))
+        line_points.append(Point(lat,lng))
+    base_line=LineString(line_points)
+    print(base_line)
     return base_line
 
 def in_line(lat,lng,line:LineString):
@@ -141,13 +144,14 @@ def is_sub_path_of(super_path:list,sub_path:list):
 
 if __name__ == '__main__':
     path_list = [
-        [(0,0),(0,1)], 
-        [(11,2),(12,9),(4,6)],
-        [(3,6),(1,4)]
+        [('0','0'),('0','1')], 
+        [('11','2'),('12','9'),('4','6')],
+        [('3','6'),('1','4')]
         
         ]
     depth = lambda L: isinstance(L, (list,tuple,set)) and max(map(depth, L))+1
-    print(depth(path_list))
+    i = in_line(3,4.5,LineString([Point(0,0),Point(2,2),Point(3,4),Point(3,5),Point(3,6)]))
+    print(i)
     # line = make_lines(path_list)
     # print(line.contains(Point(0,.5)))
 
