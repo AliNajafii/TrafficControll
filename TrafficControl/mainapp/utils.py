@@ -3,6 +3,7 @@ class LimitedQueryMixin:
     """
     associate with model classes to 
     limit query and increase performance.
+    this mixin is better for searching.
     """
     @classmethod
     def limit_query(cls,query:QuerySet,offset=0,percent=.2):
