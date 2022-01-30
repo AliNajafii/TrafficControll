@@ -11,11 +11,15 @@ def position_converter(*positions):
     for p in positions:
         if isinstance(p,(list,tuple,set)):
             #inner tuples in the list
+            try:
+                float_lat,float_long = float(coord[0]),float(coord[1])
+            except TypeError:
+                continue
             for coord in p:
                 res.append(
                     (
-                        float(coord[0]),
-                        float(coord[1])
+                       float_lat,
+                       float_long 
                     )
                     )
         else :
@@ -141,16 +145,16 @@ def is_sub_path_of(super_path:list,sub_path:list):
     line2 = make_line(*sub_path)
     return line1.covers(line2)
 
-if __name__ == '__main__':
-    path_list = [
-        [('0','0'),('0','1')], 
-        [('11','2'),('12','9'),('4','6')],
-        [('3','6'),('1','4')]
+# if __name__ == '__main__':
+#     path_list = [
+#         [('0','0'),('0','1')], 
+#         [('11','2'),('12','9'),('4','6')],
+#         [('3','6'),('1','4')]
         
-        ]
-    depth = lambda L: isinstance(L, (list,tuple,set)) and max(map(depth, L))+1
-    i = in_line(3,4.5,LineString([Point(0,0),Point(2,2),Point(3,4),Point(3,5),Point(3,6)]))
-    print(i)
+#         ]
+#     depth = lambda L: isinstance(L, (list,tuple,set)) and max(map(depth, L))+1
+#     i = in_line(3,4.5,LineString([Point(0,0),Point(2,2),Point(3,4),Point(3,5),Point(3,6)]))
+#     print(i)
     # line = make_lines(path_list)
     # print(line.contains(Point(0,.5)))
 
