@@ -8,6 +8,11 @@ class OwnerAPIViewSet(viewsets.ModelViewSet):
     serializer_class = OwnerModelSerializer
 
     def get_serializer(self, *args, **kwargs):
+        """
+        If list of json data received
+        it makes serializer to act as
+        a list serializer.
+        """
         if isinstance(kwargs.get("data", {}), list):
             kwargs["many"] = True
         return super().get_serializer(*args,**kwargs)
