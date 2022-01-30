@@ -1,7 +1,6 @@
 from django.db import models
 from .utils import make_line,in_line,in_radius_range
 from django.db.models import QuerySet
-from mainapp.utils import LimitedQueryMixin 
 
 
 class Position(models.Model):
@@ -33,7 +32,7 @@ class AbstractBaseRoad(models.Model):
     class Meta:
         abstract = True
 
-class Road(AbstractBaseRoad,LimitedQueryMixin):
+class Road(AbstractBaseRoad):
     """
     Each road has many routs
     """

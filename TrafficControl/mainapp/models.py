@@ -4,7 +4,7 @@ from geo.models import Position
 from enum import Enum
 from geo import utils as geoutils
 from geo.models import TollStation,Road
-from .utils import LimitedQueryMixin
+
 
 class ColorTypes(Enum):
     RED = 'RD'
@@ -301,7 +301,7 @@ class Car(models.Model):
             
 
 
-class CarTraffic(Position,LimitedQueryMixin):
+class CarTraffic(Position):
     """represants traffic of spesific car
     Car Traffic is designed to show car
     movements and tracked coordinates.
