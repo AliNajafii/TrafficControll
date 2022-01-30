@@ -15,11 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
+from mainapp import urls as main_urls
+from geo import urls as geo_urls
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path(r'\^\/?',include('mainapp.urls')),
-    # path('geo/',include('geo.urls'))
+    path('system/',include(main_urls)),
+    path('geo/',include(geo_urls))
 
 ]
