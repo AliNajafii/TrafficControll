@@ -21,19 +21,43 @@ class DynamicFieldsSerializer(serializers.ModelSerializer):
 
 
 class OwnerModelSerializer(DynamicFieldsSerializer):
-
+    
     class Meta:
         model = Owner
-        fields = '__all__'
+        fields = (
+            'name',
+            'age',
+            'total_toll_paid',
+        )
+    
 
 class CarModelSerializer(DynamicFieldsSerializer):
-
     class Meta:
         model = Car
-        fields = '__all__'
+        fields = (
+            'owner',
+            'car_type',
+            'load',
+            'load_balance',
+            'color',
+            )
+
+class OwnerWithCarSerializer(OwnerModelSerializer):
+    ownerCar = CarModelSerializer(many=True)
+    class Meta:
+        fields = OwnerModelSerializer.Meta.fields + ('cars',)
+    
+    def create(self,validated_date):
+        cars = {}
+        try:
+            cars = validated_date.pop('ownerCar')
+        except KeyError:
+            pass
+        owner = Owner.objects.create(**validated_date)
+        for car_data in cars :
+            Car.objects.create(owner=owner,**car_data)
 
 class CarTrafficModelSerializer(DynamicFieldsSerializer):
-
     class Meta:
         model = Car
-        fields = '__all__'
+        fields = ('car','date','lat','lng')
