@@ -5,14 +5,27 @@ from enum import Enum
 from geo import utils as geoutils
 from geo.models import TollStation,Road
 
+class TypeIdentidier:
+    """
+    This class is used for 
+    Enumration classes to 
+    get Enum members value
+    """
+    @classmethod
+    def get_type(cls,value):
+        if name in cls._member_names_:
+            if name.lower() == value or name == value:
+                return getattr(cls,name).value
 
-class ColorTypes(Enum):
+class ColorTypes(Enum,TypeIdentidier):
     RED = 'RD'
     BLUE = 'BL'
     YELLOW = 'YL'
     GREEN = 'GR'
+    BLACK = 'BK'
+    WHITE = 'WH'
 
-class CarTypes(Enum):
+class CarTypes(Enum,TypeIdentidier):
     SMALL = 'sml'
     BIG = 'big'
 
@@ -146,7 +159,7 @@ class Owner(Person):
                 end_date
                 )
             for ts in toll_stations_passed:
-                price = big_car.load_balance * ts.per_kilogram_cost
+                price = big_car.load_valume * ts.per_kilogram_cost
                 total_price += price
         except IndexError:
             pass
@@ -173,20 +186,22 @@ class Car(models.Model):
     car_type = models.CharField(
         max_length = 3,
         choices= (
-            (CarTypes.SMALL.value,CarTypes.SMALL.name),
-            (CarTypes.BIG.value,CarTypes.BIG.name),
+            (CarTypes.SMALL.value,CarTypes.SMALL.name.lower()),
+            (CarTypes.BIG.value,CarTypes.BIG.name.lower()),
         )
          
     )
     
-    load_balance = models.IntegerField(
+    load_valume = models.IntegerField(
         null= True,
         blank= True
     )
     COLOR_CHOICES = (
-        (ColorTypes.BLUE.value,ColorTypes.BLUE.name),
-        (ColorTypes.RED.value,ColorTypes.RED.name),
-        (ColorTypes.GREEN.value,ColorTypes.GREEN.name),
+        (ColorTypes.BLUE.value,ColorTypes.BLUE.name.lower()),
+        (ColorTypes.RED.value,ColorTypes.RED.name.lower()),
+        (ColorTypes.GREEN.value,ColorTypes.GREEN.name.lower()),
+        (ColorTypes.BLACK.value,ColorTypes.BLACK.name.lower()),
+        (ColorTypes.WHITE.value,ColorTypes.WHITE.name.lower()),
     )
     color = models.CharField(
         max_length=2,
@@ -288,7 +303,7 @@ class Car(models.Model):
             car :Car = Car.objects.get(id=self.id)
             if car.car_type == CarTypes.BIG.value:
                 for ts in toll_stations:
-                    total_toll_paid += ts.per_kilogram_cost * car.load_balance
+                    total_toll_paid += ts.per_kilogram_cost * car.load_valume
             else :
                 for ts in toll_stations :
                     total_toll_paid += ts.toll_per_cross
