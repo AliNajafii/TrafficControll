@@ -12,10 +12,17 @@ class RoadModelSerializer(serializers.ModelSerializer):
     """
     Serializes The Road objects
     """
-    routes = RouteModelSerializer(many=True,label='path-points')
+    points = RouteModelSerializer(many=True)
     class Meta :
         model = Road
-        fields = ('name','width','routs')
+        fields = ('name','width','points',)
+    
+    def create(self,validated_data):
+        points = validated_data.pop('points')
+        road = Road.objects.create(**validated_data)
+        for point_data in points :
+            Route.objects.create(road=road,**point_data)
+        return road
 
 class TollStationSerializer(serializers.ModelSerializer):
     class Meta:
