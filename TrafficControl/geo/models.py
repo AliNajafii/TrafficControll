@@ -42,10 +42,10 @@ class Road(AbstractBaseRoad,LimitedQueryMixin):
         unique_together = ['name','width']
     
 
-    @staticmethod
+    @classmethod
     def roads_with_toll_station(cls):
         """
-        returns all roads id which have
+        returns all roads  which have
         toll stations in them.
         """
         all_toll_stations = TollStation.objects.all()
@@ -55,7 +55,7 @@ class Road(AbstractBaseRoad,LimitedQueryMixin):
             if not t.road :
                 toll_stations_without_specified_road.add(t)
             else :
-                road = cls.objects.get(pk=t.road)
+                road = cls.objects.get(road=t.road)
                 response_roads.add(road)
 
             for toll in all_toll_stations :
@@ -63,13 +63,11 @@ class Road(AbstractBaseRoad,LimitedQueryMixin):
                     all_roads = cls.objects.all()
                     if not all_roads:
                         return response_roads 
-                    for road_list in cls.limit_query(all_roads): #for better performance using limit
-                                                                    #see LimitedQueryMixin
-                        for road in road_list:
-                            if road.in_this_road(t.lat,t.lng):
-                                response_roads.add(road)
-                                t.road = road
-                                t.save()
+                    for road in all_roads.iterator(): #for better performance using limit
+                        if road.in_this_road(t.lat,t.lng):
+                            response_roads.add(road)
+                            t.road = road
+                            t.save()
         return response_roads
             
     
@@ -79,7 +77,7 @@ class Road(AbstractBaseRoad,LimitedQueryMixin):
         in this road.
         """
         points = self.route_set.all().values_list('lat','lng')
-        line = make_line(*list(points))
+        line = make_line(*points)
         return in_line(lat,lng,line)
     
     
@@ -95,7 +93,7 @@ class Route(Position):
 
 class TollStation(Position):
     """Represents Toll stations
-    Tollstation is a place the it 
+    Tollstation is a place then it 
     has a position.
     """
     name = models.CharField(max_length=10)
