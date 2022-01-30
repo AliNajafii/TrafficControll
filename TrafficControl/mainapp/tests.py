@@ -3,6 +3,7 @@ from .models import Owner,Car
 from .models import CarTypes,ColorTypes
 from django.db.utils import OperationalError
 from django.db.models import QuerySet
+from django.utils.timezone import datetime
 from geo.models import Road
 from threading import Lock
 lock = Lock()
@@ -17,8 +18,7 @@ class OwnerModelTest(TestCase):
         But i tested it in shell and it worked.
         """ 
     def setUp(self):
-        Owner.objects.all().delete()
-        Car.objects.all().delete()
+        
         self.owner1 = Owner(
             name = 'o1',
             age = 50,
@@ -58,10 +58,11 @@ class OwnerModelTest(TestCase):
         self.assertEqual(self.owner2.car_set.all().count(),3)
         self.assertIn(car3,self.owner2.car_set.all())
 
-class TestCar(TestCase):
 
-    def setUp(self):
-        ow1 = Owner.objects.create()
+        
+    
+    
+
 
         
 
