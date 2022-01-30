@@ -219,7 +219,7 @@ class Car(models.Model):
                 route_positions = road.route_set.values_list('lat','lng')
                 for car in target_cars:
                     car_positions = car.path_traveled(start_date,end_date)
-                    travelled_in_this_road = geoutils.is_sub_path_of(route_positions,car_positions) :
+                    travelled_in_this_road = geoutils.is_sub_path_of(route_positions,car_positions) 
                     if travelled_in_this_road: #if this car is travelled in the target road
                         cars_list.append(car)
         return cars_list
