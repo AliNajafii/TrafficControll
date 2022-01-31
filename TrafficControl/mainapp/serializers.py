@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from .models import Owner,Car,CarTraffic,CarTypes,ColorTypes
 from django.db.models import ObjectDoesNotExist
-import logging
-logg = logging.Logger(__name__,level=logging.DEBUG)
+from .mixins import CarInfoDataExtractorMixin
+from django.db import transaction
+
 class DynamicFieldsSerializer(serializers.ModelSerializer):
     """
     With this class we can specify our fiels
@@ -21,42 +22,9 @@ class DynamicFieldsSerializer(serializers.ModelSerializer):
                 #removing unwanted fields
                 self.fields.pop(f_name)
 
-class BulkOwnerCreate(serializers.ListSerializer):
-
-    def create(self,validated_date):
-        """
-        this create method is for creating
-        one owner instance.
-        """
-        owners = []
-        cars = []
-        for data in validated_date:
-            cars_data = None
-            try:
-                cars_data = data.pop('ownerCar')
-            except KeyError:
-                pass
-            owner = Owner(**data)
-            owners.append(owner)
-            if cars_data:
-                for car_data in cars_data:
-                    color = ColorTypes.get_type(car_data.pop('color'))
-                    car_type = CarTypes.get_type(car_data.pop('car_type'))
-                    
-                    car = Car(
-                    owner = owner,
-                    car_type=car_type,
-                    color=color
-                    ,**car_data)
-
-                    cars.append(car)
-
-        owners = Owner.objects.bulk_create(owners)
-        Car.objects.bulk_create(cars)
-        return owners
-
 
 class CarModelSerializer(DynamicFieldsSerializer):
+    id = serializers.IntegerField()
     class Meta:
         model = Car
         fields = (
@@ -64,13 +32,13 @@ class CarModelSerializer(DynamicFieldsSerializer):
             'owner',
             'car_type',
             'load_valume',
+            'length',
             'color',
             )
         read_only_fields = ['owner',]
     
     def create(self,validated_data):
-        car_type = CarTypes.get_type(validated_data.pop('car_types')) 
-        car_color = ColorTypes.get_type(validated_data.pop('color'))
+        
         owner_id = validated_data.pop('owner')
         try:
             owner = Owner.objects.get(id=owner_id)
@@ -80,45 +48,64 @@ class CarModelSerializer(DynamicFieldsSerializer):
         )
         return Car.objects.create(
             owner=owner,
-            car_type = car_type,
-            color = car_color
+            **validated_data
             )
 
-class OwnerModelSerializer(DynamicFieldsSerializer):
-    ownerCar = CarModelSerializer(many=True,required=False)
-    class Meta:
-        model = Owner
-        fields = (
-            'name',
-            'age',
-            'total_toll_paid',
-            'ownerCar'
-        )
-        list_serializer_class = BulkOwnerCreate
+class BulkOwnerCreate(
+    serializers.ListSerializer,
+    CarInfoDataExtractorMixin
+    ):
     
     def create(self,validated_date):
         """
         this create method is for creating
         one owner instance.
         """
-        cars_data = None
+       
+        owners = []
+        
+        for data in validated_date:
+                cars_data = self.extract_info(data)
+                owner = Owner(**data)
+                owner.save()
+                owners.append(owner)
+                if cars_data:
+                    for car_data in cars_data:
+                        car = Car.objects.create(owner=owner,**car_data)
+                        
+        return owners
+
+
+class OwnerModelSerializer(
+    DynamicFieldsSerializer,
+    CarInfoDataExtractorMixin
+    ):
+    ownerCar = CarModelSerializer(many=True,required=False)
+    class Meta:
+        model = Owner
+        fields = (
+            'name',
+            'national_code',
+            'age',
+            'total_toll_paid',
+            'ownerCar',
+        )
+        list_serializer_class = BulkOwnerCreate
+    
+    
+    def create(self,validated_date):
+        """
+        this create method is for creating
+        one owner instance.
+        """
+        print(validated_date)
+        cars_data = self.extract_info(validated_date)
         cars = []
-        try:
-            cars_data = validated_date.pop('ownerCar')
-     
-        except KeyError:
-            pass
         owner = Owner.objects.create(**validated_date)
         if cars_data:
             for car_data in cars_data:
-                color = ColorTypes.get_type(car_data.pop('color'))
-                car_type = CarTypes.get_type(car_data.pop('car_type'))
-                cars.append(Car(
-                    owner = owner,
-                    car_type=car_type,
-                    color=color,**car_data
-                    ))
-            Car.objects.bulk_create(cars)
+                car = Car.objects.create(owner=owner,**car_data)
+        
         return owner
     
 class BulkCreateCarTrafficSerializer(serializers.ListSerializer):
@@ -137,6 +124,6 @@ class BulkCreateCarTrafficSerializer(serializers.ListSerializer):
 class CarTrafficModelSerializer(DynamicFieldsSerializer):
     class Meta:
         model = Car
-        fields = ('car','date','lat','lng')
+        fields = ('car','date','lat','lng',)
         list_serializer_class = BulkCreateCarTrafficSerializer
     
