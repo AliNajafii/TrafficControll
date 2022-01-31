@@ -1,8 +1,13 @@
 from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.response import Response
-from .models import Owner,Car
-from .serializers import OwnerModelSerializer,CarModelSerializer
+from .models import Owner,Car,CarTraffic
+from .serializers import (
+    OwnerModelSerializer,
+    CarModelSerializer,
+    CarTrafficModelSerializer
+)
+
 
 class OwnerAPIViewSet(viewsets.ModelViewSet):
     queryset = Owner.objects.all()
@@ -25,6 +30,15 @@ class OwnerAPIViewSet(viewsets.ModelViewSet):
 class CarAPIViewSet(viewsets.ModelViewSet):
     queryset = Car.objects.all()
     serializer_class = CarModelSerializer
+
+    def get_serializer(self, *args, **kwargs):
+        if isinstance(kwargs.get("data", {}), list):
+            kwargs["many"] = True
+        return super().get_serializer(*args,**kwargs)
+
+class CarTrafficAPIViewSet(viewsets.ModelViewSet):
+    queryset = CarTraffic.objects.all().order_by('-date')
+    serializer_class = CarTrafficModelSerializer
 
     def get_serializer(self, *args, **kwargs):
         if isinstance(kwargs.get("data", {}), list):
