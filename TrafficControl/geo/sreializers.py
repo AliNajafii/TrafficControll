@@ -16,20 +16,20 @@ class BulkRoadCreate(serializers.ListSerializer):
     client can pass Road route point too.
     """
     def create(self,validated_data):
-        roads = []
-        routes = []
-        route_data = None
+        roads=[]
+        routes_data = None
         for data in validated_data:
             try:
-                route_data = data.pop('route_set')
+                routes_data = data.pop('route_set')
             except KeyError:
                 pass
-            road = Road(**data)
+            road = Road.objects.create(**data)
             roads.append(road)
-            if route_data:
-                routes.append(Route(road=road,**route_data))
-        roads = Road.objects.bulk_create(roads)
-        Route.objects.bulk_create(routes)
+            if routes_data:
+                for r_data in routes_data:
+                    Route.objects.create(road=road,**r_data)
+        
+        
         return roads
 
 class RoadModelSerializer(serializers.ModelSerializer):
@@ -43,11 +43,9 @@ class RoadModelSerializer(serializers.ModelSerializer):
         list_serializer_class = BulkRoadCreate
     
     def create(self,validated_data):
-        points = {}
-        try :
-            points = validated_data.pop('route_set')
-        except KeyError:
-            pass
+        
+        points = validated_data.pop('route_set')
+        
         road = Road.objects.create(**validated_data)
         for point_data in points :
             Route.objects.create(road=road,**point_data)
@@ -79,5 +77,6 @@ class TollStationSerializer(serializers.ModelSerializer):
     class Meta:
         model = TollStation
         exclude = ('id',)
+        list_serializer_class = BulkTollStationSerializer
     
     
