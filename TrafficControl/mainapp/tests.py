@@ -38,19 +38,19 @@ class OwnerModelTest(TestCase):
         )
         car3 = Car.objects.create(
             car_type = CarTypes.SMALL.value,
-            load_balance = None,
+            load_valume = None,
             color = ColorTypes.RED.value,
             owner = self.owner2
         )
         car4 = Car.objects.create(
             car_type = CarTypes.SMALL.value,
-            load_balance = 200,
+            load_valume = 200,
             color = ColorTypes.BLUE.value,
             owner = self.owner2
         )
         car5 = Car.objects.create(
             car_type = CarTypes.SMALL.value,
-            load_balance = 100,
+            load_valume = 100,
             color = ColorTypes.GREEN.value,
             owner = self.owner2
         )
