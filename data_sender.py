@@ -111,10 +111,10 @@ def file_handler(file_num:int,format='json'):
             try:
                 workers_num = int(input('number of workers for this file:\t'))
                 raw_inp = input('should sento url with method(seprate with , ex:home.com,post):\t')
-                url,method = raw_data.split(',')
+                url,method = raw_inp.split(',')
                 file_info['workers'] = workers_num
-                file_info['url'] = url
-                file_info['method'] = method
+                file_info['url'] = url.strip()
+                file_info['method'] = method.strip()
             except TypeError as e:
                 print('Type Error:',*e.args)
                 continue
@@ -127,7 +127,7 @@ def file_handler(file_num:int,format='json'):
         file = open(file_path,'r',encoding='utf-8')
         file_info['resource'] = file
         files.append(file_info)
-    return file
+    return files
 
 def http_request(url:str,data,method='post',**headers):
     """
@@ -148,10 +148,9 @@ def thread_handler(url,file,method='post',thread_num=4,**request_headers):
     between threads and run them 
     for each resource.
     """
-    thread_number = int(input('How many Threads will work:\t'))
     threads = []
     raw_data = file.read()
-    data = json.dumps(raw_data)
+    data = json.loads(raw_data)
     if isinstance(data,list):
         #data contains multiple items
         chunck = int(len(data)/thread_num)
@@ -204,7 +203,10 @@ def resource_handler(resources):
 def main():
     files_num = int(input('How many json files?:\t'))
     files = file_handler(files_num)
-    resource_handler(files)
+    print(files)
+    rep = input('execute?(y/n)')
+    if rep in ('yes','y'):
+        resource_handler(files)
     print('all done.')
 
 if __name__ == "__main__":
