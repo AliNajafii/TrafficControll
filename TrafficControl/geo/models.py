@@ -28,7 +28,7 @@ class AbstractBaseRoad(models.Model):
     of a road. like name and width
     """
     name = models.CharField(max_length=30,null=True,blank=True)
-    width = models.CharField(max_length=15)
+    width = models.FloatField(default=0.0)
     class Meta:
         abstract = True
 
@@ -87,7 +87,7 @@ class Route(Position):
     """
     road = models.ForeignKey(
         'Road',
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         )
 
 class TollStation(Position):
