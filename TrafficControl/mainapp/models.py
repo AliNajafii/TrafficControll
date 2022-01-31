@@ -5,29 +5,29 @@ from enum import Enum
 from geo import utils as geoutils
 from geo.models import TollStation,Road
 
-class TypeIdentidier:
-    """
-    This class is used for 
-    Enumration classes to 
-    get Enum members value
-    """
-    @classmethod
-    def get_type(cls,value):
-        if name in cls._member_names_:
-            if name.lower() == value or name == value:
-                return getattr(cls,name).value
-
-class ColorTypes(Enum,TypeIdentidier):
+class ColorTypes(Enum):
     RED = 'RD'
     BLUE = 'BL'
     YELLOW = 'YL'
     GREEN = 'GR'
     BLACK = 'BK'
     WHITE = 'WH'
+    @classmethod
+    def get_type(cls,value:str):
+        value = value.upper()
+        for name in cls._member_names_:
+            if name == value:
+                return getattr(cls,name).value
 
-class CarTypes(Enum,TypeIdentidier):
-    SMALL = 'sml'
-    BIG = 'big'
+class CarTypes(Enum):
+    SMALL = 'SM'
+    BIG = 'BG'
+    @classmethod
+    def get_type(cls,value):
+        value = value.upper()
+        for name in cls._member_names_:
+            if name == value:
+                return getattr(cls,name).value
 
 class Person(models.Model):
     """
@@ -39,7 +39,8 @@ class Person(models.Model):
     )
     age = models.IntegerField()
     national_code = models.CharField(
-        max_length= 12
+        max_length= 12,
+        unique=True
     )
 
     class Meta:
@@ -204,7 +205,7 @@ class Car(models.Model):
         (ColorTypes.WHITE.value,ColorTypes.WHITE.name.lower()),
     )
     color = models.CharField(
-        max_length=2,
+        max_length=3,
         choices= COLOR_CHOICES
     )
     owner = models.ForeignKey(
