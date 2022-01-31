@@ -76,7 +76,7 @@ class Owner(Person):
         by owner cars.
         """
         points_list = []
-        for car in self.car_set.all():
+        for car in self.ownerCar.all():
             points = car.path_traveled()
             points_list.append(points)
         return points_list
@@ -87,7 +87,7 @@ class Owner(Person):
         her/him car.
         """
         try:
-            car = self.car_set.get(pk=car_id)
+            car = self.ownerCar.get(pk=car_id)
         except models.ObjectDoesNotExist:
             return 
         return car.path_traveled(start_date,end_date)
@@ -117,7 +117,7 @@ class Owner(Person):
         just big cars.
         """
         toll_stations = []
-        for car in self.car_set.all():
+        for car in self.ownerCar.all():
             toll_stations += self.toll_stations_passed_by_specific_car(car.id,start_date,end_date)
         
         return toll_stations
@@ -153,7 +153,7 @@ class Owner(Person):
         """
         total_price = 0
         try:
-            big_car = self.car_set.filter(car_type = CarTypes.BIG)[0]
+            big_car = self.ownerCar.filter(car_type = CarTypes.BIG)[0]
             toll_stations_passed = self.toll_stations_passed_by_specific_car(
                 big_car.id,
                 start_date,
@@ -184,34 +184,26 @@ class Car(models.Model):
     heavy car.therefore i will create
     a mysql Trigger to handel this constraint.
     """
+    
     car_type = models.CharField(
-        max_length = 3,
-        choices= (
-            (CarTypes.SMALL.value,CarTypes.SMALL.name.lower()),
-            (CarTypes.BIG.value,CarTypes.BIG.name.lower()),
-        )
-         
+        max_length = 5
     )
     
     load_valume = models.IntegerField(
         null= True,
         blank= True
     )
-    COLOR_CHOICES = (
-        (ColorTypes.BLUE.value,ColorTypes.BLUE.name.lower()),
-        (ColorTypes.RED.value,ColorTypes.RED.name.lower()),
-        (ColorTypes.GREEN.value,ColorTypes.GREEN.name.lower()),
-        (ColorTypes.BLACK.value,ColorTypes.BLACK.name.lower()),
-        (ColorTypes.WHITE.value,ColorTypes.WHITE.name.lower()),
-    )
+
+    length = models.FloatField()
+    
     color = models.CharField(
-        max_length=3,
-        choices= COLOR_CHOICES
+        max_length=5  
     )
     owner = models.ForeignKey(
         'Owner',
         on_delete = models.CASCADE,
-        related_query_name= 'cars'
+        related_name= 'ownerCar',
+        related_query_name= 'car'
     )
 
     @classmethod
@@ -313,7 +305,27 @@ class Car(models.Model):
 
         except models.ObjectDoesNotExist:
             return 
-        
+
+    def save(self,*args,**kwargs):
+        self.color = ColorTypes.get_type(self.color)
+        self.car_type = CarTypes.get_type(self.car_type)
+        return super().save(*args,**kwargs)
+    
+    def clean_fields(self,exclude = None):
+        if not CarTypes.get_type(self.car_type):
+            raise models.exceptions.ValidationError(
+            f'Invalid car type: {self.car_type}',
+            code='invalid'
+        )
+
+        if not ColorTypes.get_type(self.color):
+            raise models.exceptions.ValidationError(
+            f'Invalid color type: {self.color}',
+            code='invalid'
+        )
+
+        super().clean_fields(exclude)
+    
             
 
 
