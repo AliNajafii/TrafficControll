@@ -27,7 +27,7 @@ class AbstractBaseRoad(models.Model):
     This class has all features
     of a road. like name and width
     """
-    name = models.CharField(max_length=30,null=True,blank=True)
+    name = models.CharField(max_length=100,null=True,blank=True)
     width = models.FloatField(default=0.0)
     class Meta:
         abstract = True
@@ -107,6 +107,9 @@ class TollStation(Position):
         #data set but for searching faster
         #when querying to find a tollstation is located
         # in which road , we can inisialize this field
+    
+    class Meta:
+        unique_together = ['lat','lng']
     
     def get_position(self):
         
