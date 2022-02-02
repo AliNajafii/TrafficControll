@@ -10,16 +10,8 @@ def position_converter(positions):
     converts string numbers to float
     """
     for e in positions:
-        if hasattr(e,'__iter__'):
-            if isinstance(e,QuerySet):
-                index = positions.index(e)
-                new_item = list(e)
-                positions[index] = new_item
-                position_converter(new_item)
-            else:
-                position_converter(e)
-
-        elif isinstance(e,tuple):
+        
+        if isinstance(e,tuple):
             new_tuple = tuple()
             t_index = positions.index(e)
             for t in e :
@@ -31,6 +23,16 @@ def position_converter(positions):
         elif isinstance(e,str):
             index = positions.index(e)
             positions[index] = float(e)
+        
+        elif hasattr(e,'__iter__'):
+            if isinstance(e,QuerySet):
+                index = positions.index(e)
+                new_item = list(e)
+                positions[index] = new_item
+                position_converter(new_item)
+            else:
+                position_converter(e)
+
         
     return positions
                 
