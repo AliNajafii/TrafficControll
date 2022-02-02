@@ -10,7 +10,7 @@ import sys
 import os
 import requests
 import threading
-import pprint
+
 
 POSITION_REGEX = r'\d+\.\d*'
 log_file = open('log.txt','a',encoding='utf-8')
@@ -137,6 +137,7 @@ def http_request(url:str,data,method='post',**headers):
     this function is the main logic
     of sending request to the server
     """
+    print('prepare to send...')
     headers.update({
         'Content-Type': 'application/json'
     })
@@ -215,10 +216,55 @@ def resource_handler(resources):
             file_info['workers']
         )
 
+def get_defualt_files():
+    """
+    returns defualt files
+    insted of adding manually.
+    it returns files like file_handler
+    function.
+    """
+    defualt_setting = {
+        "all_nodes.json":{
+            'workers':4,
+            "url" : 'http://127.0.0.1:8000/system/traffics/',
+            "method":"post"
+        },
+        "owners.json":{
+            'workers':1,
+            "url" : 'http://127.0.0.1:8000/system/owners/',
+            "method":"post"
+        },
+        "roads.json":{
+            'workers':4,
+            "url" : 'http://127.0.0.1:8000/geo/roads/',
+            "method":"post"
+        },
+        "tollStations.json":{
+            'workers':1,
+            "url" : 'http://127.0.0.1:8000/geo/toll-stations/',
+            "method":"post"
+        }
+    }
+    files = []
+    for f_name in defualt_setting:
+        file = open(f_name,'r',encoding='utf-8')
+        files.append(
+           {
+               'resource':file,
+               'method':defualt_setting[f_name]['method'],
+               'url':defualt_setting[f_name]['url'],
+               'workers':defualt_setting[f_name]['workers'],
+           }
+        )
+    return files
 
 def main():
-    files_num = int(input('How many json files?:\t'))
-    files = file_handler(files_num)
+    user_inpu = input('Do you want to process default files?(y/n): ')
+    if user_inpu in ('yes','y'):
+        files = get_defualt_files()
+    else :
+        files_num = int(input('How many json files?:\t'))
+        files = file_handler(files_num)
     rep = input('execute?(y/n)')
     if rep in ('yes','y'):
         resource_handler(files)
