@@ -113,17 +113,19 @@ class BulkCreateCarTrafficSerializer(serializers.ListSerializer):
     associates with CarTraffic serializer to create 
     bulk data.
     """
-    def create(self,validated_date):
-        cars_trrafics = [
-            CarTraffic(**data) for data in validated_date
-        ] #Traffics of cars
+    def create(self,validated_data):
+        cars_trrafics = []
+        for data in validated_data:
+            car = data.pop('car')
+            ct = CarTraffic(car=car,**data)
+            cars_trrafics.append(ct)
 
         return CarTraffic.objects.bulk_create(cars_trrafics)
 
 
 class CarTrafficModelSerializer(DynamicFieldsSerializer):
     class Meta:
-        model = Car
+        model = CarTraffic
         fields = ('car','date','lat','lng',)
         list_serializer_class = BulkCreateCarTrafficSerializer
     
