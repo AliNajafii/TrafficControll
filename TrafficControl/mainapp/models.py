@@ -79,14 +79,14 @@ class Owner(Person):
                 results.append(owner)
         return results
     
-    def path_traveled(self):
+    def path_traveled(self,car_type=CarTypes.BIG,start_date=None,end_date=None):
         """
         return list of pathes travelled
         by owner cars.
         """
         points_list = []
-        for car in self.ownerCar.all():
-            points = car.path_traveled()
+        for car in self.ownerCar.all().filter(car_type = car_type.value):
+            points = car.path_traveled(start_date,end_date)
             points_list.append(points)
         return points_list
     
@@ -126,8 +126,12 @@ class Owner(Person):
         just big cars.
         """
         toll_stations = []
-        for car in self.ownerCar.all():
-            toll_stations += self.toll_stations_passed_by_specific_car(car.id,start_date,end_date)
+        points = self.path_traveled(cartype,start_date,end_date)
+        total_path = geoutils.make_lines(points)
+        for t in TollStation.objects.all():
+            lat,lng = t.get_position()
+            if geoutils.in_line(lat,lng,total_path):
+                toll_stations.append(t)
         
         return toll_stations
 
@@ -231,8 +235,7 @@ class Car(models.Model):
         cars_list = [] #finall target cars
         target_roads = Road.objects.filter(width__lte = road_less_than_width)
         target_cars = Car.objects.filter(car_type = car_type.value)
-        roads = Road.objects.all()
-        for road in roads.iterator():
+        for road in target_roads.iterator():
                 route_positions = list(road.route_set.values_list('lat','lng'))
                 for car in target_cars:
                     car_positions = car.path_traveled(start_date,end_date)
