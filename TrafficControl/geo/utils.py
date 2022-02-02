@@ -10,7 +10,14 @@ def position_converter(positions):
     converts string numbers to float
     """
     for e in positions:
-        if isinstance(e,tuple):
+        if hasattr(e,'__iter__'):
+            if isinstance(e,QuerySet):
+                index = positions.index(e)
+                new_item = list(e)
+                positions[index] = new_item
+                position_converter(new_item)
+
+        elif isinstance(e,tuple):
             new_tuple = tuple()
             t_index = positions.index(e)
             for t in e :
@@ -23,12 +30,6 @@ def position_converter(positions):
             index = positions.index(e)
             positions[index] = float(e)
         
-        elif hasattr(e,'__iter__'):
-            if isinstance(e,QuerySet):
-                index = positions.index(e)
-                new_item = list(e)
-                positions[index] = new_item
-                position_converter(new_item)
             else:
                 position_converter(e)
     return positions
@@ -151,7 +152,7 @@ def is_sub_path_of(super_path:list,sub_path:list):
     sub_path = position_converter(sub_path)
     line1 = make_line(super_path)
     line2 = make_line(sub_path)
-    return line1.covers(line2)
+    return line1.covers(line2) or line1.contains(line2)
 
 
 
