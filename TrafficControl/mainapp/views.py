@@ -17,6 +17,7 @@ from TrafficControl.settings import TRAFFIC_DATA_DATE_FORMATE
 class OwnerAPIViewSet(viewsets.ModelViewSet):
     queryset = Owner.objects.all()
     serializer_class = OwnerModelSerializer
+    lookup_field = 'national_code'
 
     def get_serializer(self, *args, **kwargs):
         """
