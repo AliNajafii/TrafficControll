@@ -1,5 +1,5 @@
 from django.db import models
-from .utils import make_line,in_line,in_radius_range
+from .utils import make_line,in_line,in_radius_range,make_lines
 from django.db.models import QuerySet
 
 
@@ -76,7 +76,8 @@ class Road(AbstractBaseRoad):
         in this road.
         """
         points = self.route_set.all().values_list('lat','lng')
-        line = make_line(*points)
+        
+        line = make_line(list(points))
         return in_line(lat,lng,line)
     
     
