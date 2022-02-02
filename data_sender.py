@@ -10,8 +10,10 @@ import sys
 import os
 import requests
 import threading
+import pprint
 
 POSITION_REGEX = r'\d+\.\d*'
+log_file = open('log.txt','a',encoding='utf-8')
 
 def make_lat_long(positions:list):
     """
@@ -58,23 +60,24 @@ def extract_lat_long(data:str):
         )
     return finall_results
 
-def data_formatter(data:dict):
+def data_formatter(data_list:list):
     """
     standardize the format of data
     and return cleaned data.
     for example extract lat and long.
     """
-    if data.get('geom'):
-        raw_data = data.pop('geom')
-        route_set = extract_lat_long(raw_data)
-        data['route_set'] = route_set
-    elif data.get('location'):
-        raw_data = data.pop('location')
-        point = extract_lat_long(raw_data)[0]
-        data['lat'] = point['lat']
-        data['lng'] = point['lng']
+    for data in data_list:
+        if data.get('geom'):
+            raw_data = data.pop('geom')
+            route_set = extract_lat_long(raw_data)
+            data['route_set'] = route_set
+        elif data.get('location'):
+            raw_data = data.pop('location')
+            point = extract_lat_long(raw_data)[0]
+            data['lat'] = point['lat']
+            data['lng'] = point['lng']
     
-    return data
+    return data_list
         
         
 
@@ -139,8 +142,17 @@ def http_request(url:str,data,method='post',**headers):
     })
     data = data_formatter(data)
     data = json.dumps(data)
+    print('-----------------------',file=log_file)
+    print(data,file=log_file)
+    
     response = requests.post(url,data=data,headers=headers)
-    print(response)
+    print(response.status_code)
+    print(response.reason)
+    num = threading.current_thread().name
+    html_file = open(f'responselogs_{num}.html','w',encoding='utf-8')
+    print(response.text,file=html_file)
+    print('-----------------------',file=log_file,end='\n\n\n')
+
 
 def thread_handler(url,file,method='post',thread_num=4,**request_headers):
     """
@@ -153,11 +165,13 @@ def thread_handler(url,file,method='post',thread_num=4,**request_headers):
     data = json.loads(raw_data)
     if isinstance(data,list):
         #data contains multiple items
-        chunck = int(len(data)/thread_num)
+        print(file.name,'-->',len(data),'items to send')
+        chunk = int(len(data)/thread_num)
         offset=0 #start of data set for each worker
-        for i in range(thread_number):
+        limit = chunk #end of data set for each worker
+        for i in range(thread_num):
             #parttioning data for each worker
-            worker_data = data[offset:chunck]
+            worker_data = data[offset:limit]
             threads.append(
                 threading.Thread(
                     target=http_request,
@@ -165,8 +179,9 @@ def thread_handler(url,file,method='post',thread_num=4,**request_headers):
                     kwargs=request_headers
                     )
                 )
-            offset += chunck
-            chunck += offset
+            offset = limit
+            limit += chunk + 1
+
         for th in threads:
             th.start()
         for th in threads:
@@ -177,6 +192,7 @@ def thread_handler(url,file,method='post',thread_num=4,**request_headers):
             
     else :
         #data is just one item
+        print(file.name,'--> one item to send')
         worker = threading.Thread(
             target=http_request,
             args=(url,data,method),
@@ -203,11 +219,11 @@ def resource_handler(resources):
 def main():
     files_num = int(input('How many json files?:\t'))
     files = file_handler(files_num)
-    print(files)
     rep = input('execute?(y/n)')
     if rep in ('yes','y'):
         resource_handler(files)
     print('all done.')
+    log_file.close()
 
 if __name__ == "__main__":
     main()
