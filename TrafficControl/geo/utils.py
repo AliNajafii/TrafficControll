@@ -119,7 +119,8 @@ def in_line(lat,lng,line:LineString):
     the given line.
     """
     lat,lng = position_converter([lat,lng])
-    return line.contains(Point(lat,lng))
+    point = Point(lat,lng)
+    return line.contains(point) or line.covers(point)
 
 def make_lines(path_list:list):
     """
