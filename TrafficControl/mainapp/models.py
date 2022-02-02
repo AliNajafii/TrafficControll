@@ -354,6 +354,9 @@ class CarTraffic(Position):
 
     date = models.DateTimeField()
 
+    class Meta:
+        unique_together = ['lat','lng','date']
+
     @classmethod
     def get_list_of_car_positions_by_date(cls,
         car_type = CarTypes.BIG,
