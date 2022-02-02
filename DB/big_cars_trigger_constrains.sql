@@ -4,7 +4,7 @@ use trafficcontrol;
 FOR EACH ROW
  BEGIN
 
- IF (NEW.owner_id in (select owner_id from trafficcontrol.mainapp_car where car_type = "big") and NEW.car_type = "big" ) THEN
+ IF (NEW.owner_id in (select owner_id from trafficcontrol.mainapp_car where car_type = "BG") and NEW.car_type = "BG" ) THEN
  signal sqlstate '45000'
  	SET MESSAGE_TEXT =  "Owner has a big car already";
  end if ;
@@ -19,7 +19,7 @@ create trigger insert_heavy_car_control BEFORE INSERT ON trafficcontrol.mainapp_
 FOR EACH ROW
 BEGIN
 
-IF (NEW.owner_id in (select owner_id from trafficcontrol.mainapp_car where car_type = "big") and NEW.car_type = "big" ) THEN
+IF (NEW.owner_id in (select owner_id from trafficcontrol.mainapp_car where car_type = "BG") and NEW.car_type = "BG" ) THEN
 signal sqlstate '45000'
 	SET MESSAGE_TEXT =  "Owner has a big car already";
 end if ;

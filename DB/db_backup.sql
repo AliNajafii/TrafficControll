@@ -1,5 +1,3 @@
-CREATE DATABASE  IF NOT EXISTS `trafficcontrol` /*!40100 DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `trafficcontrol`;
 -- MySQL dump 10.13  Distrib 8.0.17, for Win64 (x86_64)
 --
 -- Host: 127.0.0.1    Database: trafficcontrol
@@ -423,7 +421,7 @@ UNLOCK TABLES;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `insert_heavy_car_control` BEFORE INSERT ON `mainapp_car` FOR EACH ROW BEGIN
 
-IF (NEW.owner_id in (select owner_id from trafficcontrol.mainapp_car where car_type = "big") and NEW.car_type = "big" ) THEN
+IF (NEW.owner_id in (select owner_id from trafficcontrol.mainapp_car where car_type = "BG") and NEW.car_type = "BG" ) THEN
 signal sqlstate '45000'
 	SET MESSAGE_TEXT =  "Owner has a big car already";
 end if ;
@@ -444,11 +442,11 @@ DELIMITER ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `update_heavy_car_control` BEFORE UPDATE ON `mainapp_car` FOR EACH ROW BEGIN
 
-IF (NEW.owner_id in (select owner_id from trafficcontrol.mainapp_car where car_type = "big") and NEW.car_type = "big" ) THEN
-signal sqlstate '45000'
-	SET MESSAGE_TEXT =  "Owner has a big car already";
-end if ;
-END */;;
+ IF (NEW.owner_id in (select owner_id from trafficcontrol.mainapp_car where car_type = "BG") and NEW.car_type = "BG" ) THEN
+ signal sqlstate '45000'
+ 	SET MESSAGE_TEXT =  "Owner has a big car already";
+ end if ;
+ END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -529,4 +527,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-02-02 11:14:18
+-- Dump completed on 2022-02-02 15:35:37
