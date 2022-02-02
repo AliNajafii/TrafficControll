@@ -58,7 +58,7 @@ class Owner(Person):
         )
     
     @classmethod
-    def violated_owners(cls):
+    def violated_owners(cls,start_date=None,end_date=None):
         """
         returns all owners which didnt
         pay their Toll but passed from
@@ -69,6 +69,15 @@ class Owner(Person):
         that total_toll_paid will be more than the amount
         we expected.
         """
+        owners = cls.objects.all()
+        results = []
+        for owner in owners:
+            expected_paied = owner.expected_total_toll_price(start_date,end_date)
+            if expected_paied == None:
+                expected_paied = 0
+            if owner.total_toll_paid < expected_paied:
+                results.append(owner)
+        return results
     
     def path_traveled(self):
         """
@@ -100,7 +109,7 @@ class Owner(Person):
         toll_stations = []
         positions = self.path_traveld_by_car(car_id,start_date,end_date)
         if positions:
-            travelled_path = geoutils.make_line(*positions)
+            travelled_path = geoutils.make_line(positions)
             for ts in TollStation.objects.all():
                 lat,lng = ts.get_position()
                 if geoutils.in_line(lat,lng,travelled_path):
@@ -222,9 +231,9 @@ class Car(models.Model):
         cars_list = [] #finall target cars
         target_roads = Road.objects.filter(width__lte = road_less_than_width)
         target_cars = Car.objects.filter(car_type = car_type.value)
-        for limited_roads in Road.limit_query(target_roads):
-            for road in limited_roads:
-                route_positions = road.route_set.values_list('lat','lng')
+        roads = Road.objects.all()
+        for road in roads.iterator():
+                route_positions = list(road.route_set.values_list('lat','lng'))
                 for car in target_cars:
                     car_positions = car.path_traveled(start_date,end_date)
                     travelled_in_this_road = geoutils.is_sub_path_of(route_positions,car_positions) 
@@ -240,14 +249,14 @@ class Car(models.Model):
         return positions traveld by this car
         betwwen start_date and end_date
         """
-        if (start_date and not end_date) or (end_date and not start) :
+        if (start_date and not end_date) or (end_date and not start_date) :
             raise ValueError('you should set both start_date and end_date')
 
         if not start_date and not end_date:
-            return self.cartraffic_set.all().values_list('lat','lng')
+            return list(self.cartraffic_set.all().values_list('lat','lng'))
             
         between_date = Q(date__range=(start_date,end_date))
-        points = self.cartraffic_set.all().filter(between_date).values_list('lat','lng')
+        points = list(self.cartraffic_set.all().filter(between_date).values_list('lat','lng'))
         return points
     
     def get_position(self,
