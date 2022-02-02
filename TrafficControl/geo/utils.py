@@ -2,29 +2,37 @@ from geopy.distance import distance
 from math import radians, cos, sin, asin, sqrt
 from shapely.geometry import Point,LineString
 from copy import deepcopy
+from django.db.models import QuerySet
 
-def position_converter(*positions):
+
+def position_converter(positions):
     """
     converts string numbers to float
     """
-    res = []
-    for p in positions:
-        if isinstance(p,(list,tuple,set)):
-            #inner tuples in the list
-            try:
-                float_lat,float_long = float(coord[0]),float(coord[1])
-            except TypeError:
-                continue
-            for coord in p:
-                res.append(
-                    (
-                       float_lat,
-                       float_long 
-                    )
-                    )
-        else :
-            res.append(float(p))
-    return res
+    for e in positions:
+        if isinstance(e,tuple):
+            new_tuple = tuple()
+            t_index = positions.index(e)
+            for t in e :
+                if isinstance(t,str):
+                    t = float(t)
+                new_tuple += (t,)
+
+            positions[t_index] = new_tuple
+        elif isinstance(e,str):
+            index = positions.index(e)
+            positions[index] = float(e)
+        
+        elif hasattr(e,'__iter__'):
+            if isinstance(e,QuerySet):
+                index = positions.index(e)
+                new_item = list(e)
+                positions[index] = new_item
+                position_converter(new_item)
+            else:
+                position_converter(e)
+    return positions
+                
 
 
 def haversine(center_long, center_lat, point_long, point_lat):
@@ -34,10 +42,10 @@ def haversine(center_long, center_lat, point_long, point_lat):
     """
     #convert position valuse to float
     center_long, center_lat, point_long, point_lat = position_converter(
-        center_long, 
+        [center_long, 
         center_lat, 
         point_long, 
-        point_lat
+        point_lat]
         )
 
     # convert decimal degrees to radians 
@@ -59,11 +67,11 @@ def in_radius_range(center_lat,center_long,point_lat,point_long,radius_in_km):
     it returns true.
     """
     center_lat,center_long,point_lat,point_long,radius_in_km = position_converter(
-        center_lat,
+        [center_lat,
         center_long,
         point_lat,
         point_long,
-        radius_in_km
+        radius_in_km]
     )
     dist = haversine(center_long,center_lat,point_long,point_lat)
     return dist <= radius_in_km
@@ -79,10 +87,10 @@ def get_distance(lat1,long1,lat2,long2,measure='km'):
     }
     """
     lat1,long1,lat2,long2 = position_converter(
-        lat1,
+        [lat1,
         long1,
         lat2,
-        long2
+        long2]
     )
     dist = distance((lat1,long1),(lat2,long2))
     return {
@@ -90,7 +98,7 @@ def get_distance(lat1,long1,lat2,long2,measure='km'):
         'm' : dist.m
     }
 
-def make_line(*points:tuple):
+def make_line(points):
     """
     givs points as tuple and make linestrings
     and return shapely module LineString
@@ -110,7 +118,7 @@ def in_line(lat,lng,line:LineString):
     returns true if given point is in
     the given line.
     """
-    lat,lng = position_converter(lat,lng)
+    lat,lng = position_converter([lat,lng])
     return line.contains(Point(lat,lng))
 
 def make_lines(path_list:list):
@@ -131,7 +139,6 @@ def make_lines(path_list:list):
         for coordinate in path:
             coordinates.append(Point(coordinate))
         line = line.union(LineString(coordinates))
-        print(line.length)
     return line
 
 def is_sub_path_of(super_path:list,sub_path:list):
@@ -141,22 +148,12 @@ def is_sub_path_of(super_path:list,sub_path:list):
     """
     super_path = position_converter(super_path)
     sub_path = position_converter(sub_path)
-    line1 = make_line(*super_path)
-    line2 = make_line(*sub_path)
+    line1 = make_line(super_path)
+    line2 = make_line(sub_path)
     return line1.covers(line2)
 
-# if __name__ == '__main__':
-#     path_list = [
-#         [('0','0'),('0','1')], 
-#         [('11','2'),('12','9'),('4','6')],
-#         [('3','6'),('1','4')]
-        
-#         ]
-#     depth = lambda L: isinstance(L, (list,tuple,set)) and max(map(depth, L))+1
-#     i = in_line(3,4.5,LineString([Point(0,0),Point(2,2),Point(3,4),Point(3,5),Point(3,6)]))
-#     print(i)
-    # line = make_lines(path_list)
-    # print(line.contains(Point(0,.5)))
+
+
 
     
 
