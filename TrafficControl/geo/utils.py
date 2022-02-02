@@ -16,6 +16,8 @@ def position_converter(positions):
                 new_item = list(e)
                 positions[index] = new_item
                 position_converter(new_item)
+            else:
+                position_converter(e)
 
         elif isinstance(e,tuple):
             new_tuple = tuple()
@@ -30,8 +32,6 @@ def position_converter(positions):
             index = positions.index(e)
             positions[index] = float(e)
         
-            else:
-                position_converter(e)
     return positions
                 
 
