@@ -78,5 +78,10 @@ class TollStationSerializer(serializers.ModelSerializer):
         model = TollStation
         exclude = ('id',)
         list_serializer_class = BulkTollStationSerializer
-    
+
+class PositionSerializer(serializers.Serializer):
+    lat = serializers.CharField(required=True)
+    lng = serializers.CharField(required=True)
+    radius = serializers.FloatField(required=False)
+ 
     
