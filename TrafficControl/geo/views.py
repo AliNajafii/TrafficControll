@@ -13,7 +13,7 @@ from rest_framework.response import Response
 class RoadAPIViewSet(viewsets.ModelViewSet):
     queryset = Road.objects.all()
     serializer_class = RoadModelSerializer
-    lookup_field = 'name'
+    lookup_field = 'id'
 
     def get_serializer(self, *args, **kwargs):
         if isinstance(kwargs.get("data", {}), list):
