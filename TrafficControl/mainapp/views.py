@@ -151,8 +151,9 @@ class CarAPIViewSet(viewsets.ModelViewSet):
                 'Error':'start_date,end_date and road_width is required.'
             }
             )
-        start_date = datetime.strptime(start_date,TRAFFIC_DATA_DATE_FORMATE)
-        end_date = datetime.strptime(end_date,TRAFFIC_DATA_DATE_FORMATE)
+        if start_date and end_date:
+            start_date = datetime.strptime(start_date,TRAFFIC_DATA_DATE_FORMATE)
+            end_date = datetime.strptime(end_date,TRAFFIC_DATA_DATE_FORMATE)
         road_width = float(road_width)
         cars = []
         if car_type:
